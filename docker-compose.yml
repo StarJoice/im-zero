@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Nginx 网关
+  nginx-gateway:
+    image: nginx:1.21.5
+    container_name: nginx-gateway
+    restart: always
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8888:80"
+    volumes:
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d
+      - ./data/nginx/log:/var/log/nginx
+    networks:
+      - imzero_net
+    depends_on:
+      - im-zero
+
+  # 应用服务容器 (使用modd进行热重载)
+  im-zero:
+    image: lyumikael/gomodd:v1.22.1
+    container_name: im-zero
+    environment:
+      TZ: Asia/Shanghai
+      GOPROXY: https://goproxy.cn,direct
+    working_dir: /go/im-zero
+    volumes:
+      - .:/go/im-zero
+      - /go/im-zero/data # 排除data目录避免权限问题
+    privileged: true
+    restart: always
+    ports:
+      - "8080:8080"   # UserCenter API
+      - "8001:8001"   # UserCenter RPC
+      - "2004:2004"   # VerifyCode API
+      - "2001:2001"   # VerifyCode RPC
+      - "4008:4008"   # UserCenter Prometheus
+      - "4009:4009"   # VerifyCode Prometheus
+    networks:
+      - imzero_net
+    # 启动命令使用modd进行热重载
+    command: ["modd"]
+
+networks:
+  imzero_net:
+    name: im-zero_imzero_net
+    external: true

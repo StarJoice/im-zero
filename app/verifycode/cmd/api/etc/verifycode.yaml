@@ -1,0 +1,12 @@
+Name: verifycode
+Host: 0.0.0.0
+Port: 2004
+
+
+# 配置verify 服务
+VerifycodeRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379  # 修改为服务名
+    Key: verifycode.rpc # 服务注册的键名
+  Timeout: 3000  # RPC调用超时时间(毫秒)

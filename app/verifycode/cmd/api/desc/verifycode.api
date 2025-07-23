@@ -1,0 +1,30 @@
+syntax = "v1"
+
+info (
+	title:   "type title here"
+	desc:    "type desc here"
+	author:  "type author here"
+	email:   "type email here"
+	version: "type version here"
+)
+
+type (
+	SendSmsCodeReq {
+		Mobile string `json:"mobile", validate:"required,mobile"`
+		Scene  int32  `json:"scene", validate:"required,gte=1,lte=3"`
+	}
+	SendSmsCodeResp {
+		CodeKey string `json:"codeKey"`
+	}
+)
+
+@server (
+	prefix: verifycode/v1
+	group:  verifycode
+)
+service verifycode {
+	@doc "send verifycode"
+	@handler SendSmsCode
+	post /verifycode/send (SendSmsCodeReq) returns (SendSmsCodeResp)
+}
+

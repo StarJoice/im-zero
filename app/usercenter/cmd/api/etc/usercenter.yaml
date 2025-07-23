@@ -1,0 +1,51 @@
+Name: usercenter
+Host: 0.0.0.0
+Port: 8080
+Mode: dev
+
+# JWT认证配置
+JwtAuth:
+  AccessSecret: ae0536f9-6450-4606-8e13-5a19ed505da0
+  AccessExpire: 31536000
+
+# 服务自身注册到etcd
+Etcd:
+  Hosts:
+    - etcd:2379
+  Key: usercenter.api
+
+# RPC客户端配置 - 关键部分
+UsercenterRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379  # 修改为服务名
+    Key: usercenter.rpc  # 服务注册的键名
+  Timeout: 5000  # RPC调用超时时间(毫秒)
+
+# 数据库配置
+DB:
+  DataSource: root:PXDN93VRKUm8TeE7@tcp(mysql:3306)/im_usercenter?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+# Redis缓存
+Redis:
+  Host: redis:6379
+  Type: node
+  Pass: G62m50oigInC30sf
+
+# 日志配置
+Log:
+  ServiceName: usercenter-api
+  Level: error
+
+# 监控系统
+Prometheus:
+  Host: 0.0.0.0
+  Port: 4008
+  Path: /metrics
+
+# 链路追踪
+Telemetry:
+  Name: usercenter-api
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger

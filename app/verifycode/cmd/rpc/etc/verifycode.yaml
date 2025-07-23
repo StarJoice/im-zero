@@ -1,0 +1,59 @@
+Etcd:
+  Hosts:
+    - etcd:2379
+  Key: verifycode.rpc
+
+Name: verifycode-rpc
+Mode: dev
+ListenOn: 0.0.0.0:2001
+
+#Monitoring
+Prometheus:
+  Host: 0.0.0.0
+  Port: 4009
+  Path: /metrics
+
+Log:
+  ServiceName: verifycode-rpc
+  Level: info
+
+# Redis配置
+Redis:
+  Host: redis:6379
+  Pass: G62m50oigInC30sf
+  Type: node
+  DB: 0
+  Key: "verifycode-rpc"   # Redis 键前缀
+
+# 短信服务配置
+Sms:
+  Provider: "aliyun" # aliyun, tencent, mock
+  AccessKey: "your-access-key"
+  AccessSecret: "your-access-secret"
+  SignName: "你的签名"
+  TemplateCode: "SMS_123456789" # 默认模板
+  # 短信模板配置
+  Templates:
+    - ID: "SMS_REGISTER_VERIFY"
+      Provider: "aliyun"
+      Description: "注册验证码模板"
+      Content: "您的注册验证码是${code}，5分钟内有效"
+      Params: [ "code" ]
+      Enabled: true
+      RateLimit: 2 # 2次/分钟
+
+    - ID: "SMS_LOGIN_VERIFY"
+      Provider: "aliyun"
+      Description: "登录验证码模板"
+      Content: "您的登录验证码是${code}，5分钟内有效"
+      Params: [ "code" ]
+      Enabled: true
+      RateLimit: 2
+
+    - ID: "SMS_RESET_PASSWORD"
+      Provider: "aliyun"
+      Description: "重置密码模板"
+      Content: "您正在重置密码，验证码是${code}，5分钟内有效"
+      Params: [ "code" ]
+      Enabled: true
+      RateLimit: 2

@@ -1,0 +1,14 @@
+# 忽略 MySQL 数据目录（包含套接字、日志、数据库文件等）
+data/
+
+# 忽略 IDE 自动生成的配置文件（如 .idea/，可选但推荐）
+.idea/
+*.iml
+*.ipr
+*.iws
+.claude/
+
+# 忽略其他临时文件
+*.sock
+*.log
+*.tmp
