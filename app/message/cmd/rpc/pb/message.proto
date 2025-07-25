@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package message;
+option go_package = "./message";
+
+// 消息服务定义
+service Message {
+  // 发送消息
+  rpc SendMessage(SendMessageReq) returns (SendMessageResp);
+  // 获取聊天记录
+  rpc GetChatHistory(GetChatHistoryReq) returns (GetChatHistoryResp);
+  // 获取对话列表
+  rpc GetConversations(GetConversationsReq) returns (GetConversationsResp);
+  // 标记消息已读
+  rpc MarkAsRead(MarkAsReadReq) returns (MarkAsReadResp);
+  // 删除消息
+  rpc DeleteMessage(DeleteMessageReq) returns (DeleteMessageResp);
+  // 撤回消息
+  rpc RecallMessage(RecallMessageReq) returns (RecallMessageResp);
+  // 获取未读消息数
+  rpc GetUnreadCount(GetUnreadCountReq) returns (GetUnreadCountResp);
+  // 推送消息给用户
+  rpc PushMessage(PushMessageReq) returns (PushMessageResp);
+}
+
+// 消息结构
+message MessageInfo {
+  int64 id = 1;
+  int64 from_user_id = 2;
+  int64 to_user_id = 3;
+  string conversation_id = 4;
+  int32 message_type = 5; // 1:文本 2:图片 3:语音 4:视频 5:文件
+  string content = 6;
+  string extra = 7; // 扩展信息
+  int32 status = 8; // 0:发送中 1:已发送 2:已送达 3:已读 4:撤回 5:删除
+  int64 create_time = 9;
+  int64 update_time = 10;
+}
+
+// 对话信息
+message ConversationInfo {
+  string id = 1;
+  int32 type = 2; // 1:单聊 2:群聊
+  string name = 3;
+  string avatar = 4;
+  MessageInfo last_message = 5;
+  int32 unread_count = 6;
+  int64 update_time = 7;
+}
+
+// 发送消息
+message SendMessageReq {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+  int32 message_type = 3;
+  string content = 4;
+  string extra = 5;
+}
+
+message SendMessageResp {
+  MessageInfo message = 1;
+}
+
+// 获取聊天记录
+message GetChatHistoryReq {
+  string conversation_id = 1;
+  int64 last_message_id = 2; // 分页用
+  int32 limit = 3;
+}
+
+message GetChatHistoryResp {
+  repeated MessageInfo messages = 1;
+  bool has_more = 2;
+}
+
+// 获取对话列表
+message GetConversationsReq {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetConversationsResp {
+  repeated ConversationInfo conversations = 1;
+  int32 total = 2;
+}
+
+// 标记已读
+message MarkAsReadReq {
+  int64 user_id = 1;
+  string conversation_id = 2;
+  int64 message_id = 3; // 可选，标记到此消息为止
+}
+
+message MarkAsReadResp {
+  bool success = 1;
+}
+
+// 删除消息
+message DeleteMessageReq {
+  int64 user_id = 1;
+  int64 message_id = 2;
+}
+
+message DeleteMessageResp {
+  bool success = 1;
+}
+
+// 撤回消息
+message RecallMessageReq {
+  int64 user_id = 1;
+  int64 message_id = 2;
+}
+
+message RecallMessageResp {
+  bool success = 1;
+}
+
+// 获取未读消息数
+message GetUnreadCountReq {
+  int64 user_id = 1;
+  string conversation_id = 2; // 可选，获取指定会话的未读数
+}
+
+message GetUnreadCountResp {
+  int64 count = 1; // 未读消息总数或指定会话未读数
+}
+
+// 推送消息
+message PushMessageReq {
+  int64 user_id = 1;
+  MessageInfo message = 2;
+}
+
+message PushMessageResp {
+  bool success = 1;
+}

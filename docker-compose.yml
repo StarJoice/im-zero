@@ -37,6 +37,12 @@ services:
       - "8001:8001"   # UserCenter RPC
       - "2004:2004"   # VerifyCode API
       - "2001:2001"   # VerifyCode RPC
+      - "8002:8002"   # Friend API
+      - "8004:8004"   # Group API
+      - "8005:8005"   # Message API
+      - "8101:8101"   # Friend RPC
+      - "8102:8102"   # Group RPC
+      - "8003:8003"   # Message RPC
       - "4008:4008"   # UserCenter Prometheus
       - "4009:4009"   # VerifyCode Prometheus
     networks:

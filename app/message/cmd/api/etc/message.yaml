@@ -1,0 +1,26 @@
+Name: message-api
+Host: 0.0.0.0
+Port: 8005
+Mode: dev
+
+# JWT认证配置
+JwtAuth:
+  AccessSecret: ae0536f9-6450-4606-8e13-5a19ed505da0
+  AccessExpire: 31536000
+
+Log:
+  ServiceName: message-api
+  Level: info
+  Mode: console
+  path: logs
+  MaxAge: 7
+  RotationTime: 24
+  StackCooldownMillis: 100
+
+# 依赖的RPC服务
+MessageRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: message.rpc
+  Timeout: 5000

@@ -1,0 +1,31 @@
+package friend
+
+import (
+	"context"
+
+	"im-zero/app/friend/cmd/api/internal/svc"
+	"im-zero/app/friend/cmd/api/internal/types"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type DeleteFriendLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+}
+
+// 删除好友
+func NewDeleteFriendLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteFriendLogic {
+	return &DeleteFriendLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
+	}
+}
+
+func (l *DeleteFriendLogic) DeleteFriend(req *types.DeleteFriendReq) (resp *types.DeleteFriendResp, err error) {
+	// todo: add your logic here and delete this line
+
+	return
+}

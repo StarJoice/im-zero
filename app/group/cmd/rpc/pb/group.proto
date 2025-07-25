@@ -1,0 +1,253 @@
+syntax = "proto3";
+
+package group;
+option go_package = "./group";
+
+// 群组服务定义
+service Group {
+  // 创建群组
+  rpc CreateGroup(CreateGroupReq) returns (CreateGroupResp);
+  // 获取群组信息
+  rpc GetGroupInfo(GetGroupInfoReq) returns (GetGroupInfoResp);
+  // 更新群组信息
+  rpc UpdateGroup(UpdateGroupReq) returns (UpdateGroupResp);
+  // 解散群组
+  rpc DissolveGroup(DissolveGroupReq) returns (DissolveGroupResp);
+  // 邀请用户入群
+  rpc InviteUsers(InviteUsersReq) returns (InviteUsersResp);
+  // 移除群成员
+  rpc RemoveMembers(RemoveMembersReq) returns (RemoveMembersResp);
+  // 退出群组
+  rpc LeaveGroup(LeaveGroupReq) returns (LeaveGroupResp);
+  // 获取群成员列表
+  rpc GetGroupMembers(GetGroupMembersReq) returns (GetGroupMembersResp);
+  // 设置成员角色
+  rpc SetMemberRole(SetMemberRoleReq) returns (SetMemberRoleResp);
+  // 禁言成员
+  rpc MuteMembers(MuteMembersReq) returns (MuteMembersResp);
+  // 获取用户的群组列表
+  rpc GetUserGroups(GetUserGroupsReq) returns (GetUserGroupsResp);
+  // 检查用户是否在群中
+  rpc CheckMembership(CheckMembershipReq) returns (CheckMembershipResp);
+  // 发送群消息
+  rpc SendGroupMessage(SendGroupMessageReq) returns (SendGroupMessageResp);
+  // 获取群聊记录
+  rpc GetGroupHistory(GetGroupHistoryReq) returns (GetGroupHistoryResp);
+}
+
+// 群组信息
+message GroupInfo {
+  int64 id = 1;
+  string name = 2;
+  string avatar = 3;
+  string description = 4;
+  string notice = 5;
+  int64 owner_id = 6;
+  int32 member_count = 7;
+  int32 max_members = 8;
+  int32 status = 9;
+  bool is_private = 10;
+  bool join_approval = 11;
+  bool allow_invite = 12;
+  bool allow_member_modify = 13;
+  int64 create_time = 14;
+  int64 update_time = 15;
+}
+
+// 群成员信息
+message GroupMemberInfo {
+  int64 user_id = 1;
+  int64 group_id = 2;
+  string nickname = 3;
+  string avatar = 4;
+  int32 role = 5;
+  int32 status = 6;
+  int64 mute_end_time = 7;
+  int64 join_time = 8;
+}
+
+// 群消息信息
+message GroupMessageInfo {
+  int64 id = 1;
+  int64 group_id = 2;
+  int64 from_user_id = 3;
+  int32 message_type = 4;
+  string content = 5;
+  string extra = 6;
+  int32 status = 7;
+  int64 create_time = 8;
+}
+
+// 创建群组
+message CreateGroupReq {
+  int64 owner_id = 1;
+  string name = 2;
+  string avatar = 3;
+  string description = 4;
+  repeated int64 member_ids = 5;
+  bool is_private = 6;
+  bool join_approval = 7;
+}
+
+message CreateGroupResp {
+  GroupInfo group = 1;
+}
+
+// 获取群组信息
+message GetGroupInfoReq {
+  int64 group_id = 1;
+  int64 user_id = 2; // 查询者ID
+}
+
+message GetGroupInfoResp {
+  GroupInfo group = 1;
+  int32 my_role = 2;
+}
+
+// 更新群组信息
+message UpdateGroupReq {
+  int64 group_id = 1;
+  int64 operator_id = 2;
+  string name = 3;
+  string avatar = 4;
+  string description = 5;
+  string notice = 6;
+  bool join_approval = 7;
+  bool allow_invite = 8;
+  bool allow_member_modify = 9;
+}
+
+message UpdateGroupResp {
+  bool success = 1;
+}
+
+// 解散群组
+message DissolveGroupReq {
+  int64 group_id = 1;
+  int64 operator_id = 2;
+}
+
+message DissolveGroupResp {
+  bool success = 1;
+}
+
+// 邀请用户入群
+message InviteUsersReq {
+  int64 group_id = 1;
+  int64 inviter_id = 2;
+  repeated int64 user_ids = 3;
+}
+
+message InviteUsersResp {
+  int32 success_count = 1;
+  repeated int64 failed_users = 2;
+}
+
+// 移除群成员
+message RemoveMembersReq {
+  int64 group_id = 1;
+  int64 operator_id = 2;
+  repeated int64 user_ids = 3;
+}
+
+message RemoveMembersResp {
+  int32 success_count = 1;
+  repeated int64 failed_users = 2;
+}
+
+// 退出群组
+message LeaveGroupReq {
+  int64 group_id = 1;
+  int64 user_id = 2;
+}
+
+message LeaveGroupResp {
+  bool success = 1;
+}
+
+// 获取群成员列表
+message GetGroupMembersReq {
+  int64 group_id = 1;
+  int32 role = 2; // 可选筛选
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message GetGroupMembersResp {
+  repeated GroupMemberInfo members = 1;
+  int32 total = 2;
+}
+
+// 设置成员角色
+message SetMemberRoleReq {
+  int64 group_id = 1;
+  int64 operator_id = 2;
+  int64 user_id = 3;
+  int32 role = 4;
+}
+
+message SetMemberRoleResp {
+  bool success = 1;
+}
+
+// 禁言成员
+message MuteMembersReq {
+  int64 group_id = 1;
+  int64 operator_id = 2;
+  repeated int64 user_ids = 3;
+  int64 duration = 4; // 禁言时长(秒)
+}
+
+message MuteMembersResp {
+  int32 success_count = 1;
+  repeated int64 failed_users = 2;
+}
+
+// 获取用户群组列表
+message GetUserGroupsReq {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetUserGroupsResp {
+  repeated GroupInfo groups = 1;
+  int32 total = 2;
+}
+
+// 检查成员关系
+message CheckMembershipReq {
+  int64 group_id = 1;
+  int64 user_id = 2;
+}
+
+message CheckMembershipResp {
+  bool is_member = 1;
+  int32 role = 2;
+}
+
+// 发送群消息
+message SendGroupMessageReq {
+  int64 group_id = 1;
+  int64 from_user_id = 2;
+  int32 message_type = 3;
+  string content = 4;
+  string extra = 5;
+}
+
+message SendGroupMessageResp {
+  GroupMessageInfo message = 1;
+}
+
+// 获取群聊记录
+message GetGroupHistoryReq {
+  int64 group_id = 1;
+  int64 user_id = 2; // 查询者ID，用于权限检查
+  int64 last_message_id = 3;
+  int32 limit = 4;
+}
+
+message GetGroupHistoryResp {
+  repeated GroupMessageInfo messages = 1;
+  bool has_more = 2;
+}

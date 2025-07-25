@@ -1,0 +1,22 @@
+Name: friend.rpc
+ListenOn: 0.0.0.0:8101
+Etcd:
+  Hosts:
+  - etcd:2379
+  Key: friend.rpc
+
+# 数据库配置
+DB:
+  DataSource: root:PXDN93VRKUm8TeE7@tcp(mysql:3306)/im?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+# 缓存配置
+Cache:
+  - Host: redis:6379
+    Pass: G62m50oigInC30sf
+
+# RPC服务配置
+UsercenterRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: usercenter.rpc

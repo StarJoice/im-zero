@@ -1,0 +1,47 @@
+Name: message-rpc
+ListenOn: 0.0.0.0:8003
+Mode: dev
+Etcd:
+  Hosts:
+    - etcd:2379
+  Key: message.rpc
+
+Log:
+  ServiceName: message-rpc
+  Level: info
+  Mode: console
+  path: logs
+  MaxAge: 7
+  RotationTime: 24
+  StackCooldownMillis: 100
+
+# 数据库配置
+DB:
+  DataSource: root:PXDN93VRKUm8TeE7@tcp(mysql:3306)/im?charset=utf8mb4&parseTime=true&loc=Asia%2fShanghai
+
+# 缓存配置
+Cache:
+  - Host: redis:6379
+    Pass: G62m50oigInC30sf
+
+# 依赖的RPC服务
+UsercenterRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: usercenter.rpc
+  Timeout: 3000
+
+FriendRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: friend.rpc
+  Timeout: 3000
+
+GroupRpc:
+  Etcd:
+    Hosts:
+      - etcd:2379
+    Key: group.rpc
+  Timeout: 3000

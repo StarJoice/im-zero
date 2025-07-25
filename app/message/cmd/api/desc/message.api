@@ -1,0 +1,57 @@
+syntax = "v1"
+
+info (
+	title:   "即时消息服务"
+	desc:    "聊天消息发送和接收服务"
+	author:  "StarJoice"
+	version: "v1"
+)
+
+import (
+	"message/message.api"
+)
+
+//============================> message v1 <============================
+//need login
+@server (
+	prefix: message/v1
+	group:  message
+	jwt:    JwtAuth
+)
+service message {
+	@doc "发送消息"
+	@handler sendMessage
+	post /send (SendMessageReq) returns (SendMessageResp)
+
+	@doc "获取聊天记录"
+	@handler getChatHistory
+	post /history (GetChatHistoryReq) returns (GetChatHistoryResp)
+
+	@doc "获取最近对话列表"
+	@handler getConversations
+	post /conversations (GetConversationsReq) returns (GetConversationsResp)
+
+	@doc "标记消息为已读"
+	@handler markAsRead
+	post /read (MarkAsReadReq) returns (MarkAsReadResp)
+
+	@doc "删除消息"
+	@handler deleteMessage
+	post /delete (DeleteMessageReq) returns (DeleteMessageResp)
+
+	@doc "撤回消息"
+	@handler recallMessage
+	post /recall (RecallMessageReq) returns (RecallMessageResp)
+}
+
+//websocket 连接不需要JWT，通过token参数验证
+@server (
+	prefix: message/v1
+	group:  ws
+)
+service message {
+	@doc "WebSocket连接"
+	@handler wsConnect
+	get /ws (WsConnectReq)
+}
+

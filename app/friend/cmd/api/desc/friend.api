@@ -1,0 +1,58 @@
+syntax = "v1"
+
+info (
+	title:   "好友关系服务"
+	desc:    "用户好友管理服务"
+	author:  "StarJoice"
+	version: "v1"
+)
+
+import (
+	"friend/friend.api"
+)
+
+//============================> friend v1 <============================
+//need login
+@server (
+	prefix: friend/v1
+	group:  friend
+	jwt:    JwtAuth
+)
+service friend {
+	@doc "发送好友请求"
+	@handler sendFriendRequest
+	post /request/send (SendFriendRequestReq) returns (SendFriendRequestResp)
+
+	@doc "处理好友请求"
+	@handler handleFriendRequest
+	post /request/handle (HandleFriendRequestReq) returns (HandleFriendRequestResp)
+
+	@doc "获取好友请求列表"
+	@handler getFriendRequests
+	post /request/list (GetFriendRequestsReq) returns (GetFriendRequestsResp)
+
+	@doc "获取好友列表"
+	@handler getFriendList
+	post /list (GetFriendListReq) returns (GetFriendListResp)
+
+	@doc "删除好友"
+	@handler deleteFriend
+	post /delete (DeleteFriendReq) returns (DeleteFriendResp)
+
+	@doc "拉黑用户"
+	@handler blockUser
+	post /block (BlockUserReq) returns (BlockUserResp)
+
+	@doc "取消拉黑"
+	@handler unblockUser
+	post /unblock (UnblockUserReq) returns (UnblockUserResp)
+
+	@doc "获取黑名单"
+	@handler getBlockList
+	post /blocklist (GetBlockListReq) returns (GetBlockListResp)
+
+	@doc "搜索用户"
+	@handler searchUsers
+	post /search (SearchUsersReq) returns (SearchUsersResp)
+}
+

@@ -1,0 +1,74 @@
+syntax = "v1"
+
+info (
+	title:   "群组管理服务"
+	desc:    "群聊群组管理服务"
+	author:  "StarJoice"
+	version: "v1"
+)
+
+import (
+	"group/group.api"
+)
+
+//============================> group v1 <============================
+//need login
+@server (
+	prefix: group/v1
+	group:  group
+	jwt:    JwtAuth
+)
+service group {
+	@doc "创建群组"
+	@handler createGroup
+	post /create (CreateGroupReq) returns (CreateGroupResp)
+
+	@doc "获取群组信息"
+	@handler getGroupInfo
+	post /info (GetGroupInfoReq) returns (GetGroupInfoResp)
+
+	@doc "更新群组信息"
+	@handler updateGroup
+	post /update (UpdateGroupReq) returns (UpdateGroupResp)
+
+	@doc "解散群组"
+	@handler dissolveGroup
+	post /dissolve (DissolveGroupReq) returns (DissolveGroupResp)
+
+	@doc "邀请用户入群"
+	@handler inviteUsers
+	post /invite (InviteUsersReq) returns (InviteUsersResp)
+
+	@doc "踢出群成员"
+	@handler removeMembers
+	post /remove (RemoveMembersReq) returns (RemoveMembersResp)
+
+	@doc "退出群组"
+	@handler leaveGroup
+	post /leave (LeaveGroupReq) returns (LeaveGroupResp)
+
+	@doc "获取群成员列表"
+	@handler getGroupMembers
+	post /members (GetGroupMembersReq) returns (GetGroupMembersResp)
+
+	@doc "设置群成员角色"
+	@handler setMemberRole
+	post /member/role (SetMemberRoleReq) returns (SetMemberRoleResp)
+
+	@doc "禁言群成员"
+	@handler muteMembers
+	post /member/mute (MuteMembersReq) returns (MuteMembersResp)
+
+	@doc "获取我的群组列表"
+	@handler getMyGroups
+	post /my (GetMyGroupsReq) returns (GetMyGroupsResp)
+
+	@doc "群组消息发送"
+	@handler sendGroupMessage
+	post /message/send (SendGroupMessageReq) returns (SendGroupMessageResp)
+
+	@doc "获取群聊记录"
+	@handler getGroupHistory
+	post /message/history (GetGroupHistoryReq) returns (GetGroupHistoryResp)
+}
+

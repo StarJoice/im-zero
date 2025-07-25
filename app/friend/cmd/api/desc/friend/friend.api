@@ -1,0 +1,139 @@
+syntax = "v1"
+
+info(
+    title: "好友系统类型定义"
+    desc: "好友关系相关数据结构"
+    author: "StarJoice"
+)
+
+// 用户基础信息
+type UserInfo {
+    Id int64 `json:"id"`
+    Mobile string `json:"mobile"`
+    Nickname string `json:"nickname"`
+    Avatar string `json:"avatar"`
+    Sign string `json:"sign"`
+    Status int32 `json:"status"` // 0:离线 1:在线 2:忙碌 3:勿扰
+}
+
+// 好友信息
+type FriendInfo {
+    UserInfo UserInfo `json:"userInfo"`
+    Remark string `json:"remark"` // 备注名
+    GroupId int64 `json:"groupId"` // 好友分组ID
+    CreateTime int64 `json:"createTime"`
+}
+
+// 好友请求信息
+type FriendRequest {
+    Id int64 `json:"id"`
+    FromUser UserInfo `json:"fromUser"`
+    ToUser UserInfo `json:"toUser"`
+    Message string `json:"message"` // 验证消息
+    Status int32 `json:"status"` // 0:待处理 1:已同意 2:已拒绝 3:已过期
+    CreateTime int64 `json:"createTime"`
+    HandleTime int64 `json:"handleTime,optional"`
+}
+
+// 发送好友请求
+type (
+    SendFriendRequestReq {
+        ToUserId int64 `json:"toUserId"`
+        Message string `json:"message,optional"` // 验证消息
+    }
+    SendFriendRequestResp {
+        RequestId int64 `json:"requestId"`
+    }
+)
+
+// 处理好友请求
+type (
+    HandleFriendRequestReq {
+        RequestId int64 `json:"requestId"`
+        Action int32 `json:"action"` // 1:同意 2:拒绝
+        Remark string `json:"remark,optional"` // 备注名(同意时使用)
+    }
+    HandleFriendRequestResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 获取好友请求列表
+type (
+    GetFriendRequestsReq {
+        Type int32 `json:"type"` // 1:我发送的 2:我收到的
+        Page int32 `json:"page,optional,range=[1:]"`
+        Limit int32 `json:"limit,optional,range=[1:50]"`
+    }
+    GetFriendRequestsResp {
+        Requests []FriendRequest `json:"requests"`
+        Total int32 `json:"total"`
+    }
+)
+
+// 获取好友列表
+type (
+    GetFriendListReq {
+        GroupId int64 `json:"groupId,optional"` // 好友分组ID，不传获取所有
+    }
+    GetFriendListResp {
+        Friends []FriendInfo `json:"friends"`
+        Total int32 `json:"total"`
+    }
+)
+
+// 删除好友
+type (
+    DeleteFriendReq {
+        FriendUserId int64 `json:"friendUserId"`
+    }
+    DeleteFriendResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 拉黑用户
+type (
+    BlockUserReq {
+        UserId int64 `json:"userId"`
+        Reason string `json:"reason,optional"`
+    }
+    BlockUserResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 取消拉黑
+type (
+    UnblockUserReq {
+        UserId int64 `json:"userId"`
+    }
+    UnblockUserResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 获取黑名单
+type (
+    GetBlockListReq {
+        Page int32 `json:"page,optional,range=[1:]"`
+        Limit int32 `json:"limit,optional,range=[1:50]"`
+    }
+    GetBlockListResp {
+        BlockUsers []UserInfo `json:"blockUsers"`
+        Total int32 `json:"total"`
+    }
+)
+
+// 搜索用户
+type (
+    SearchUsersReq {
+        Keyword string `json:"keyword"` // 搜索关键词(手机号/昵称)
+        Page int32 `json:"page,optional,range=[1:]"`
+        Limit int32 `json:"limit,optional,range=[1:20]"`
+    }
+    SearchUsersResp {
+        Users []UserInfo `json:"users"`
+        Total int32 `json:"total"`
+    }
+)

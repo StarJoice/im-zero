@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package friend;
+option go_package = "./friend";
+
+// 好友服务定义
+service Friend {
+  // 发送好友请求
+  rpc SendFriendRequest(SendFriendRequestReq) returns (SendFriendRequestResp);
+  // 处理好友请求
+  rpc HandleFriendRequest(HandleFriendRequestReq) returns (HandleFriendRequestResp);
+  // 获取好友请求列表
+  rpc GetFriendRequests(GetFriendRequestsReq) returns (GetFriendRequestsResp);
+  // 获取好友列表
+  rpc GetFriendList(GetFriendListReq) returns (GetFriendListResp);
+  // 删除好友
+  rpc DeleteFriend(DeleteFriendReq) returns (DeleteFriendResp);
+  // 检查好友关系
+  rpc CheckFriendship(CheckFriendshipReq) returns (CheckFriendshipResp);
+  // 拉黑用户
+  rpc BlockUser(BlockUserReq) returns (BlockUserResp);
+  // 取消拉黑
+  rpc UnblockUser(UnblockUserReq) returns (UnblockUserResp);
+  // 获取黑名单
+  rpc GetBlockList(GetBlockListReq) returns (GetBlockListResp);
+  // 检查是否被拉黑
+  rpc CheckBlocked(CheckBlockedReq) returns (CheckBlockedResp);
+  // 搜索用户
+  rpc SearchUsers(SearchUsersReq) returns (SearchUsersResp);
+}
+
+// 用户信息
+message UserInfo {
+  int64 id = 1;
+  string mobile = 2;
+  string nickname = 3;
+  string avatar = 4;
+  string sign = 5;
+  int32 status = 6;
+}
+
+// 好友信息
+message FriendInfo {
+  UserInfo user_info = 1;
+  string remark = 2;
+  int64 group_id = 3;
+  int64 create_time = 4;
+}
+
+// 好友请求信息
+message FriendRequestInfo {
+  int64 id = 1;
+  UserInfo from_user = 2;
+  UserInfo to_user = 3;
+  string message = 4;
+  int32 status = 5;
+  int64 create_time = 6;
+  int64 handle_time = 7;
+}
+
+// 发送好友请求
+message SendFriendRequestReq {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+  string message = 3;
+}
+
+message SendFriendRequestResp {
+  int64 request_id = 1;
+}
+
+// 处理好友请求
+message HandleFriendRequestReq {
+  int64 request_id = 1;
+  int64 user_id = 2; // 处理请求的用户ID
+  int32 action = 3; // 1:同意 2:拒绝
+  string remark = 4;
+}
+
+message HandleFriendRequestResp {
+  bool success = 1;
+}
+
+// 获取好友请求列表
+message GetFriendRequestsReq {
+  int64 user_id = 1;
+  int32 type = 2; // 1:我发送的 2:我收到的
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message GetFriendRequestsResp {
+  repeated FriendRequestInfo requests = 1;
+  int32 total = 2;
+}
+
+// 获取好友列表
+message GetFriendListReq {
+  int64 user_id = 1;
+  int64 group_id = 2; // 可选
+}
+
+message GetFriendListResp {
+  repeated FriendInfo friends = 1;
+  int32 total = 2;
+}
+
+// 删除好友
+message DeleteFriendReq {
+  int64 user_id = 1;
+  int64 friend_user_id = 2;
+}
+
+message DeleteFriendResp {
+  bool success = 1;
+}
+
+// 检查好友关系
+message CheckFriendshipReq {
+  int64 user_id = 1;
+  int64 target_user_id = 2;
+}
+
+message CheckFriendshipResp {
+  bool is_friend = 1;
+  string remark = 2;
+}
+
+// 拉黑用户
+message BlockUserReq {
+  int64 user_id = 1;
+  int64 blocked_user_id = 2;
+  string reason = 3;
+}
+
+message BlockUserResp {
+  bool success = 1;
+}
+
+// 取消拉黑
+message UnblockUserReq {
+  int64 user_id = 1;
+  int64 blocked_user_id = 2;
+}
+
+message UnblockUserResp {
+  bool success = 1;
+}
+
+// 获取黑名单
+message GetBlockListReq {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetBlockListResp {
+  repeated UserInfo blocked_users = 1;
+  int32 total = 2;
+}
+
+// 检查拉黑状态
+message CheckBlockedReq {
+  int64 user_id = 1;
+  int64 target_user_id = 2;
+}
+
+message CheckBlockedResp {
+  bool is_blocked = 1; // user_id是否被target_user_id拉黑
+  bool has_blocked = 2; // user_id是否拉黑了target_user_id
+}
+
+// 搜索用户
+message SearchUsersReq {
+  string keyword = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message SearchUsersResp {
+  repeated UserInfo users = 1;
+  int32 total = 2;
+}

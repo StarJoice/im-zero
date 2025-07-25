@@ -1,0 +1,15 @@
+Name: group
+Host: 0.0.0.0
+Port: 8004
+
+# JWT配置
+JwtAuth:
+  AccessSecret: ae0536f9-6450-4606-8e13-5a19ed505da0
+  AccessExpire: 86400
+
+# RPC配置
+GroupRpc:
+  Etcd:
+    Hosts:
+    - etcd:2379
+    Key: group.rpc

@@ -1,0 +1,214 @@
+syntax = "v1"
+
+info(
+    title: "群组系统类型定义"
+    desc: "群聊相关数据结构"
+    author: "StarJoice"
+)
+
+// 群组基础信息
+type GroupInfo {
+    Id int64 `json:"id"`
+    Name string `json:"name"`
+    Avatar string `json:"avatar"`
+    Description string `json:"description"`
+    Notice string `json:"notice"` // 群公告
+    OwnerId int64 `json:"ownerId"`
+    MemberCount int32 `json:"memberCount"`
+    MaxMembers int32 `json:"maxMembers"` // 最大成员数
+    Status int32 `json:"status"` // 0:正常 1:禁用
+    IsPrivate bool `json:"isPrivate"` // 是否私有群
+    JoinApproval bool `json:"joinApproval"` // 是否需要审批
+    AllowInvite bool `json:"allowInvite"` // 是否允许成员邀请
+    AllowMemberModify bool `json:"allowMemberModify"` // 是否允许成员修改群信息
+    CreateTime int64 `json:"createTime"`
+    UpdateTime int64 `json:"updateTime"`
+}
+
+// 群成员信息
+type GroupMember {
+    UserId int64 `json:"userId"`
+    GroupId int64 `json:"groupId"`
+    Nickname string `json:"nickname"` // 群昵称
+    Avatar string `json:"avatar"`
+    Role int32 `json:"role"` // 1:群主 2:管理员 3:普通成员
+    Status int32 `json:"status"` // 0:正常 1:禁言
+    MuteEndTime int64 `json:"muteEndTime"` // 禁言结束时间
+    JoinTime int64 `json:"joinTime"`
+}
+
+// 群消息
+type GroupMessage {
+    Id int64 `json:"id"`
+    GroupId int64 `json:"groupId"`
+    FromUserId int64 `json:"fromUserId"`
+    MessageType int32 `json:"messageType"`
+    Content string `json:"content"`
+    Extra string `json:"extra"`
+    Status int32 `json:"status"`
+    CreateTime int64 `json:"createTime"`
+}
+
+// 创建群组
+type (
+    CreateGroupReq {
+        Name string `json:"name"`
+        Avatar string `json:"avatar,optional"`
+        Description string `json:"description,optional"`
+        MemberIds []int64 `json:"memberIds,optional"` // 初始成员
+        IsPrivate bool `json:"isPrivate,optional"`
+        JoinApproval bool `json:"joinApproval,optional"`
+    }
+    CreateGroupResp {
+        Group GroupInfo `json:"group"`
+    }
+)
+
+// 获取群组信息
+type (
+    GetGroupInfoReq {
+        GroupId int64 `json:"groupId"`
+    }
+    GetGroupInfoResp {
+        Group GroupInfo `json:"group"`
+        MyRole int32 `json:"myRole"`
+    }
+)
+
+// 更新群组信息
+type (
+    UpdateGroupReq {
+        GroupId int64 `json:"groupId"`
+        Name string `json:"name,optional"`
+        Avatar string `json:"avatar,optional"`
+        Description string `json:"description,optional"`
+        Notice string `json:"notice,optional"`
+        JoinApproval bool `json:"joinApproval,optional"`
+        AllowInvite bool `json:"allowInvite,optional"`
+        AllowMemberModify bool `json:"allowMemberModify,optional"`
+    }
+    UpdateGroupResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 解散群组
+type (
+    DissolveGroupReq {
+        GroupId int64 `json:"groupId"`
+    }
+    DissolveGroupResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 邀请用户入群
+type (
+    InviteUsersReq {
+        GroupId int64 `json:"groupId"`
+        UserIds []int64 `json:"userIds"`
+    }
+    InviteUsersResp {
+        SuccessCount int32 `json:"successCount"`
+        FailedUsers []int64 `json:"failedUsers,optional"`
+    }
+)
+
+// 踢出群成员
+type (
+    RemoveMembersReq {
+        GroupId int64 `json:"groupId"`
+        UserIds []int64 `json:"userIds"`
+    }
+    RemoveMembersResp {
+        SuccessCount int32 `json:"successCount"`
+        FailedUsers []int64 `json:"failedUsers,optional"`
+    }
+)
+
+// 退出群组
+type (
+    LeaveGroupReq {
+        GroupId int64 `json:"groupId"`
+    }
+    LeaveGroupResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 获取群成员
+type (
+    GetGroupMembersReq {
+        GroupId int64 `json:"groupId"`
+        Role int32 `json:"role,optional"` // 筛选角色
+        Page int32 `json:"page,optional,range=[1:]"`
+        Limit int32 `json:"limit,optional,range=[1:100]"`
+    }
+    GetGroupMembersResp {
+        Members []GroupMember `json:"members"`
+        Total int32 `json:"total"`
+    }
+)
+
+// 设置成员角色
+type (
+    SetMemberRoleReq {
+        GroupId int64 `json:"groupId"`
+        UserId int64 `json:"userId"`
+        Role int32 `json:"role"` // 2:管理员 3:普通成员
+    }
+    SetMemberRoleResp {
+        Success bool `json:"success"`
+    }
+)
+
+// 禁言成员
+type (
+    MuteMembersReq {
+        GroupId int64 `json:"groupId"`
+        UserIds []int64 `json:"userIds"`
+        Duration int64 `json:"duration"` // 禁言时长(秒)，0表示解除禁言
+    }
+    MuteMembersResp {
+        SuccessCount int32 `json:"successCount"`
+        FailedUsers []int64 `json:"failedUsers,optional"`
+    }
+)
+
+// 获取我的群组
+type (
+    GetMyGroupsReq {
+        Page int32 `json:"page,optional,range=[1:]"`
+        Limit int32 `json:"limit,optional,range=[1:50]"`
+    }
+    GetMyGroupsResp {
+        Groups []GroupInfo `json:"groups"`
+        Total int32 `json:"total"`
+    }
+)
+
+// 发送群消息
+type (
+    SendGroupMessageReq {
+        GroupId int64 `json:"groupId"`
+        MessageType int32 `json:"messageType"`
+        Content string `json:"content"`
+        Extra string `json:"extra,optional"`
+    }
+    SendGroupMessageResp {
+        Message GroupMessage `json:"message"`
+    }
+)
+
+// 获取群聊记录
+type (
+    GetGroupHistoryReq {
+        GroupId int64 `json:"groupId"`
+        LastMessageId int64 `json:"lastMessageId,optional"`
+        Limit int32 `json:"limit,optional,range=[1:100]"`
+    }
+    GetGroupHistoryResp {
+        Messages []GroupMessage `json:"messages"`
+        HasMore bool `json:"hasMore"`
+    }
+)
