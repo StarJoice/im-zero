@@ -55,3 +55,14 @@ service message {
 	get /ws (WsConnectReq)
 }
 
+//内部推送接口，用于RPC服务调用
+@server (
+	prefix: message/v1/internal
+	group:  internal
+)
+service message {
+	@doc "内部推送消息"
+	@handler pushMessage
+	post /push (InternalPushReq) returns (InternalPushResp)
+}
+

@@ -27,6 +27,8 @@ type (
 		CountBlacklistByUserId(ctx context.Context, userId int64) (int64, error)
 		// 双向检查拉黑状态
 		CheckMutualBlocked(ctx context.Context, userId1, userId2 int64) (user1BlockedUser2, user2BlockedUser1 bool, err error)
+		// 移除拉黑关系
+		RemoveBlocked(ctx context.Context, session sqlx.Session, userId, blockedUserId int64) error
 	}
 
 	customImUserBlacklistModel struct {
@@ -144,4 +146,11 @@ func (m *customImUserBlacklistModel) CheckMutualBlocked(ctx context.Context, use
 	}
 
 	return user1BlockedUser2, user2BlockedUser1, nil
+}
+
+// 移除拉黑关系
+func (m *customImUserBlacklistModel) RemoveBlocked(ctx context.Context, session sqlx.Session, userId, blockedUserId int64) error {
+	query := "UPDATE " + m.table + " SET `del_state` = 1, `update_time` = NOW() WHERE `user_id` = ? AND `blocked_user_id` = ? AND `del_state` = 0"
+	_, err := session.ExecCtx(ctx, query, userId, blockedUserId)
+	return err
 }

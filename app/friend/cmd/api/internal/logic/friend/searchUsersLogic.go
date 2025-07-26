@@ -59,7 +59,6 @@ func (l *SearchUsersLogic) SearchUsers(req *types.SearchUsersReq) (resp *types.S
 
 	// 调用RPC服务搜索用户
 	rpcResp, err := l.svcCtx.FriendRpc.SearchUsers(l.ctx, &friend.SearchUsersReq{
-		UserId:  userId,
 		Keyword: req.Keyword,
 		Page:    req.Page,
 		Limit:   req.Limit,

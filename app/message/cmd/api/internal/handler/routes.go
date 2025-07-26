@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	message "im-zero/app/message/cmd/api/internal/handler/message"
+	push "im-zero/app/message/cmd/api/internal/handler/push"
 	ws "im-zero/app/message/cmd/api/internal/handler/ws"
 	"im-zero/app/message/cmd/api/internal/svc"
 
@@ -14,6 +15,18 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 内部推送消息
+				Method:  http.MethodPost,
+				Path:    "/push",
+				Handler: push.PushMessageHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/message/v1/internal"),
+	)
+
 	server.AddRoutes(
 		[]rest.Route{
 			{

@@ -43,7 +43,7 @@ func (s *UsercenterServer) GetUserAuthByAuthKey(ctx context.Context, in *pb.GetU
 	return l.GetUserAuthByAuthKey(in)
 }
 
-func (s *UsercenterServer) GetUserAuthByUserId(ctx context.Context, in *pb.GetUserAuthByUserIdReq) (*pb.GetUserAuthyUserIdResp, error) {
+func (s *UsercenterServer) GetUserAuthByUserId(ctx context.Context, in *pb.GetUserAuthByUserIdReq) (*pb.GetUserAuthByUserIdResp, error) {
 	l := logic.NewGetUserAuthByUserIdLogic(ctx, s.svcCtx)
 	return l.GetUserAuthByUserId(in)
 }
@@ -51,4 +51,14 @@ func (s *UsercenterServer) GetUserAuthByUserId(ctx context.Context, in *pb.GetUs
 func (s *UsercenterServer) GenerateToken(ctx context.Context, in *pb.GenerateTokenReq) (*pb.GenerateTokenResp, error) {
 	l := logic.NewGenerateTokenLogic(ctx, s.svcCtx)
 	return l.GenerateToken(in)
+}
+
+func (s *UsercenterServer) GetUserByMobile(ctx context.Context, in *pb.GetUserByMobileReq) (*pb.GetUserByMobileResp, error) {
+	l := logic.NewGetUserByMobileLogic(ctx, s.svcCtx)
+	return l.GetUserByMobile(in)
+}
+
+func (s *UsercenterServer) SearchUsersByNickname(ctx context.Context, in *pb.SearchUsersByNicknameReq) (*pb.SearchUsersByNicknameResp, error) {
+	l := logic.NewSearchUsersByNicknameLogic(ctx, s.svcCtx)
+	return l.SearchUsersByNickname(in)
 }

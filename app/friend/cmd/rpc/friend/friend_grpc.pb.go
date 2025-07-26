@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.4.0
 // - protoc             v3.19.4
-// source: friend.proto
+// source: pb/friend.proto
 
 package friend
 
@@ -512,5 +512,5 @@ var Friend_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "friend.proto",
+	Metadata: "pb/friend.proto",
 }

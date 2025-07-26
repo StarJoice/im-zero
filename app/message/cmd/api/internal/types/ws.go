@@ -4,5 +4,5 @@
 package types
 
 type WsConnectReq struct {
-	Token string `form:"token"` // JWT token
+	Token string `form:"token,optional"` // JWT token (可选，推荐使用Authorization header: Bearer <token>)
 }

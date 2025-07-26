@@ -48,21 +48,17 @@ func (l *GetFriendListLogic) GetFriendList(req *types.GetFriendListReq) (resp *t
 	var friends []types.FriendInfo
 	for _, friendInfo := range rpcResp.Friends {
 		friends = append(friends, types.FriendInfo{
-			Id:         friendInfo.Id,
-			UserId:     friendInfo.UserId,
-			FriendId:   friendInfo.FriendId,
-			Remark:     friendInfo.Remark,
-			GroupId:    friendInfo.GroupId,
-			Status:     friendInfo.Status,
-			CreateTime: friendInfo.CreateTime,
-			// 用户信息
 			UserInfo: types.UserInfo{
 				Id:       friendInfo.UserInfo.Id,
 				Mobile:   friendInfo.UserInfo.Mobile,
 				Nickname: friendInfo.UserInfo.Nickname,
 				Avatar:   friendInfo.UserInfo.Avatar,
 				Sign:     friendInfo.UserInfo.Sign,
+				Status:   friendInfo.UserInfo.Status,
 			},
+			Remark:     friendInfo.Remark,
+			GroupId:    friendInfo.GroupId,
+			CreateTime: friendInfo.CreateTime,
 		})
 	}
 

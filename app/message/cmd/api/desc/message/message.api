@@ -103,6 +103,17 @@ type (
 // WebSocket连接请求
 type (
     WsConnectReq {
-        Token string `form:"token"` // JWT token
+        Token string `form:"token,optional"` // JWT token (可选，推荐使用Authorization header: Bearer <token>)
+    }
+)
+
+// 内部推送请求
+type (
+    InternalPushReq {
+        UserId int64 `json:"userId"`
+        Message Message `json:"message"`
+    }
+    InternalPushResp {
+        Success bool `json:"success"`
     }
 )

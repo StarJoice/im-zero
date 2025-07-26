@@ -57,17 +57,19 @@ func (l *SendMessageLogic) SendMessage(in *message.SendMessageReq) (*message.Sen
 	var msgResp *message.SendMessageResp
 
 	// 使用事务确保数据一致性
-	err := l.svcCtx.ImMessageModel.Trans(l.ctx, func(ctx context.Context, session sqlx.Session) error {
+	err = l.svcCtx.ImMessageModel.Trans(l.ctx, func(ctx context.Context, session sqlx.Session) error {
 		// 1. 查找或创建会话
 		conversation, err := l.svcCtx.ImConversationModel.FindOrCreateConversation(ctx, session, in.FromUserId, in.ToUserId)
 		if err != nil {
 			return errors.Wrapf(err, "find or create conversation failed")
 		}
 
-		// 同时需要为接收方创建会话记录
-		_, err = l.svcCtx.ImConversationModel.FindOrCreateConversation(ctx, session, in.ToUserId, in.FromUserId)
-		if err != nil {
-			return errors.Wrapf(err, "find or create receiver conversation failed")
+		// 如果发送方和接收方不是同一人，需要为接收方创建会话记录
+		if in.FromUserId != in.ToUserId {
+			_, err = l.svcCtx.ImConversationModel.FindOrCreateConversation(ctx, session, in.ToUserId, in.FromUserId)
+			if err != nil {
+				return errors.Wrapf(err, "find or create receiver conversation failed")
+			}
 		}
 
 		// 2. 生成消息序号（简单的时间戳 + 用户ID）
@@ -102,16 +104,18 @@ func (l *SendMessageLogic) SendMessage(in *message.SendMessageReq) (*message.Sen
 			return errors.Wrapf(err, "update sender conversation failed")
 		}
 
-		// 5. 更新接收方会话的最后消息信息和未读计数
-		receiverConversationId := model.GenerateConversationId(in.ToUserId, in.FromUserId)
-		err = l.svcCtx.ImConversationModel.UpdateLastMessage(ctx, session, receiverConversationId, msgId, in.Content)
-		if err != nil {
-			return errors.Wrapf(err, "update receiver conversation failed")
-		}
+		// 5. 更新接收方会话的最后消息信息和未读计数（仅在不同用户间才需要）
+		if in.FromUserId != in.ToUserId {
+			receiverConversationId := model.GenerateUserConversationId(in.ToUserId, in.FromUserId)
+			err = l.svcCtx.ImConversationModel.UpdateLastMessage(ctx, session, receiverConversationId, msgId, in.Content)
+			if err != nil {
+				return errors.Wrapf(err, "update receiver conversation failed")
+			}
 
-		err = l.svcCtx.ImConversationModel.IncrementUnreadCount(ctx, session, receiverConversationId, in.ToUserId)
-		if err != nil {
-			return errors.Wrapf(err, "increment unread count failed")
+			err = l.svcCtx.ImConversationModel.IncrementUnreadCount(ctx, session, receiverConversationId, in.ToUserId)
+			if err != nil {
+				return errors.Wrapf(err, "increment unread count failed")
+			}
 		}
 
 		// 6. 构造返回结果
@@ -138,14 +142,17 @@ func (l *SendMessageLogic) SendMessage(in *message.SendMessageReq) (*message.Sen
 	}
 
 	// 推送消息给接收方
+	l.Logger.Infof("开始推送消息给用户 %d, 消息ID: %d", in.ToUserId, msgResp.Message.Id)
 	pushLogic := NewPushMessageLogic(l.ctx, l.svcCtx)
-	_, err = pushLogic.PushMessage(&message.PushMessageReq{
+	pushResp, err := pushLogic.PushMessage(&message.PushMessageReq{
 		UserId:  in.ToUserId,
 		Message: msgResp.Message,
 	})
 	if err != nil {
 		l.Logger.Errorf("Failed to push message to user %d: %v", in.ToUserId, err)
 		// 推送失败不影响消息发送，只记录错误日志
+	} else {
+		l.Logger.Infof("推送消息结果: success=%v", pushResp.Success)
 	}
 
 	l.Logger.Infof("Message sent successfully: from=%d, to=%d, msgId=%d", in.FromUserId, in.ToUserId, msgResp.Message.Id)

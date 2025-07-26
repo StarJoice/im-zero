@@ -27,6 +27,8 @@ type (
 		BatchCheckFriendship(ctx context.Context, userId int64, friendIds []int64) (map[int64]bool, error)
 		// 根据备注搜索好友
 		SearchFriendsByRemark(ctx context.Context, userId int64, keyword string) ([]*ImFriend, error)
+		// 删除好友关系
+		DeleteFriendship(ctx context.Context, session sqlx.Session, userId, friendId int64) error
 	}
 
 	customImFriendModel struct {
@@ -138,4 +140,11 @@ func (m *customImFriendModel) SearchFriendsByRemark(ctx context.Context, userId 
 		return nil, err
 	}
 	return resp, nil
+}
+
+// 删除好友关系
+func (m *customImFriendModel) DeleteFriendship(ctx context.Context, session sqlx.Session, userId, friendId int64) error {
+	query := "UPDATE " + m.table + " SET `del_state` = 1, `update_time` = NOW() WHERE `user_id` = ? AND `friend_id` = ? AND `del_state` = 0"
+	_, err := session.ExecCtx(ctx, query, userId, friendId)
+	return err
 }

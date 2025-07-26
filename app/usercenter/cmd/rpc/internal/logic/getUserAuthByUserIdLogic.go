@@ -28,7 +28,7 @@ func NewGetUserAuthByUserIdLogic(ctx context.Context, svcCtx *svc.ServiceContext
 	}
 }
 
-func (l *GetUserAuthByUserIdLogic) GetUserAuthByUserId(in *pb.GetUserAuthByUserIdReq) (*pb.GetUserAuthyUserIdResp, error) {
+func (l *GetUserAuthByUserIdLogic) GetUserAuthByUserId(in *pb.GetUserAuthByUserIdReq) (*pb.GetUserAuthByUserIdResp, error) {
 	// todo: add your logic here and delete this line
 	userAuth, err := l.svcCtx.UserAuthModel.FindOneByUserIdAuthType(l.ctx, in.UserId, in.AuthType)
 	if err != nil && err != model.ErrNotFound {
@@ -38,7 +38,7 @@ func (l *GetUserAuthByUserIdLogic) GetUserAuthByUserId(in *pb.GetUserAuthByUserI
 	var respUserAuth usercenter.UserAuth
 	_ = copier.Copy(&respUserAuth, userAuth)
 
-	return &pb.GetUserAuthyUserIdResp{
+	return &pb.GetUserAuthByUserIdResp{
 		UserAuth: &respUserAuth,
 	}, nil
 

@@ -79,6 +79,23 @@ message GenerateTokenResp {
   int64  refreshAfter = 3;
 }
 
+message GetUserByMobileReq {
+  string mobile = 1;
+}
+message GetUserByMobileResp {
+  User user = 1;
+}
+
+message SearchUsersByNicknameReq {
+  string keyword = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+message SearchUsersByNicknameResp {
+  repeated User users = 1;
+  int32 total = 2;
+}
+
 //service
 service usercenter {
   rpc login(LoginReq) returns(LoginResp);
@@ -87,4 +104,6 @@ service usercenter {
   rpc getUserAuthByAuthKey(GetUserAuthByAuthKeyReq) returns(GetUserAuthByAuthKeyResp);
   rpc getUserAuthByUserId(GetUserAuthByUserIdReq) returns(GetUserAuthByUserIdResp);
   rpc generateToken(GenerateTokenReq) returns(GenerateTokenResp);
+  rpc getUserByMobile(GetUserByMobileReq) returns(GetUserByMobileResp);
+  rpc searchUsersByNickname(SearchUsersByNicknameReq) returns(SearchUsersByNicknameResp);
 }

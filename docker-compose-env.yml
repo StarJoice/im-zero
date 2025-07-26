@@ -125,6 +125,48 @@ services:
     depends_on:
       - redis
 
+  # MinIO 对象存储服务
+  minio:
+    image: minio/minio:RELEASE.2024-01-11T07-46-16Z
+    container_name: minio
+    restart: always
+    ports:
+      - "9000:9000"     # API端口
+      - "9001:9001"     # Console端口
+    environment:
+      TZ: Asia/Shanghai
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - ./data/minio:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - imzero_net
+
+  # MinIO Client (用于初始化bucket)
+  minio-init:
+    image: minio/mc:RELEASE.2024-05-28T14-59-31Z
+    container_name: minio-init
+    depends_on:
+      - minio
+    environment:
+      TZ: Asia/Shanghai
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      /usr/bin/mc mb myminio/im-files --ignore-existing;
+      /usr/bin/mc mb myminio/im-avatars --ignore-existing;
+      /usr/bin/mc mb myminio/im-temp --ignore-existing;
+      /usr/bin/mc anonymous set public myminio/im-avatars;
+      /usr/bin/mc anonymous set download myminio/im-temp;
+      echo 'MinIO buckets initialized successfully';
+      echo 'Buckets created: im-files (private), im-avatars (public), im-temp (download)';
+      exit 0;
+      "
+    networks:
+      - imzero_net
+
 networks:
   imzero_net:
     driver: bridge

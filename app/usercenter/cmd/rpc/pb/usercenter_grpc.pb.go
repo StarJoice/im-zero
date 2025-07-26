@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.4.0
 // - protoc             v3.19.4
-// source: usercenter.proto
+// source: pb/usercenter.proto
 
 package pb
 
@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	Usercenter_Login_FullMethodName                = "/pb.usercenter/login"
-	Usercenter_Register_FullMethodName             = "/pb.usercenter/register"
-	Usercenter_GetUserInfo_FullMethodName          = "/pb.usercenter/getUserInfo"
-	Usercenter_GetUserAuthByAuthKey_FullMethodName = "/pb.usercenter/getUserAuthByAuthKey"
-	Usercenter_GetUserAuthByUserId_FullMethodName  = "/pb.usercenter/getUserAuthByUserId"
-	Usercenter_GenerateToken_FullMethodName        = "/pb.usercenter/generateToken"
+	Usercenter_Login_FullMethodName                 = "/pb.usercenter/login"
+	Usercenter_Register_FullMethodName              = "/pb.usercenter/register"
+	Usercenter_GetUserInfo_FullMethodName           = "/pb.usercenter/getUserInfo"
+	Usercenter_GetUserAuthByAuthKey_FullMethodName  = "/pb.usercenter/getUserAuthByAuthKey"
+	Usercenter_GetUserAuthByUserId_FullMethodName   = "/pb.usercenter/getUserAuthByUserId"
+	Usercenter_GenerateToken_FullMethodName         = "/pb.usercenter/generateToken"
+	Usercenter_GetUserByMobile_FullMethodName       = "/pb.usercenter/getUserByMobile"
+	Usercenter_SearchUsersByNickname_FullMethodName = "/pb.usercenter/searchUsersByNickname"
 )
 
 // UsercenterClient is the client API for Usercenter service.
@@ -37,8 +39,10 @@ type UsercenterClient interface {
 	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error)
 	GetUserInfo(ctx context.Context, in *GetUserInfoReq, opts ...grpc.CallOption) (*GetUserInfoResp, error)
 	GetUserAuthByAuthKey(ctx context.Context, in *GetUserAuthByAuthKeyReq, opts ...grpc.CallOption) (*GetUserAuthByAuthKeyResp, error)
-	GetUserAuthByUserId(ctx context.Context, in *GetUserAuthByUserIdReq, opts ...grpc.CallOption) (*GetUserAuthyUserIdResp, error)
+	GetUserAuthByUserId(ctx context.Context, in *GetUserAuthByUserIdReq, opts ...grpc.CallOption) (*GetUserAuthByUserIdResp, error)
 	GenerateToken(ctx context.Context, in *GenerateTokenReq, opts ...grpc.CallOption) (*GenerateTokenResp, error)
+	GetUserByMobile(ctx context.Context, in *GetUserByMobileReq, opts ...grpc.CallOption) (*GetUserByMobileResp, error)
+	SearchUsersByNickname(ctx context.Context, in *SearchUsersByNicknameReq, opts ...grpc.CallOption) (*SearchUsersByNicknameResp, error)
 }
 
 type usercenterClient struct {
@@ -89,9 +93,9 @@ func (c *usercenterClient) GetUserAuthByAuthKey(ctx context.Context, in *GetUser
 	return out, nil
 }
 
-func (c *usercenterClient) GetUserAuthByUserId(ctx context.Context, in *GetUserAuthByUserIdReq, opts ...grpc.CallOption) (*GetUserAuthyUserIdResp, error) {
+func (c *usercenterClient) GetUserAuthByUserId(ctx context.Context, in *GetUserAuthByUserIdReq, opts ...grpc.CallOption) (*GetUserAuthByUserIdResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetUserAuthyUserIdResp)
+	out := new(GetUserAuthByUserIdResp)
 	err := c.cc.Invoke(ctx, Usercenter_GetUserAuthByUserId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -109,6 +113,26 @@ func (c *usercenterClient) GenerateToken(ctx context.Context, in *GenerateTokenR
 	return out, nil
 }
 
+func (c *usercenterClient) GetUserByMobile(ctx context.Context, in *GetUserByMobileReq, opts ...grpc.CallOption) (*GetUserByMobileResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserByMobileResp)
+	err := c.cc.Invoke(ctx, Usercenter_GetUserByMobile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usercenterClient) SearchUsersByNickname(ctx context.Context, in *SearchUsersByNicknameReq, opts ...grpc.CallOption) (*SearchUsersByNicknameResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchUsersByNicknameResp)
+	err := c.cc.Invoke(ctx, Usercenter_SearchUsersByNickname_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsercenterServer is the server API for Usercenter service.
 // All implementations must embed UnimplementedUsercenterServer
 // for forward compatibility
@@ -119,8 +143,10 @@ type UsercenterServer interface {
 	Register(context.Context, *RegisterReq) (*RegisterResp, error)
 	GetUserInfo(context.Context, *GetUserInfoReq) (*GetUserInfoResp, error)
 	GetUserAuthByAuthKey(context.Context, *GetUserAuthByAuthKeyReq) (*GetUserAuthByAuthKeyResp, error)
-	GetUserAuthByUserId(context.Context, *GetUserAuthByUserIdReq) (*GetUserAuthyUserIdResp, error)
+	GetUserAuthByUserId(context.Context, *GetUserAuthByUserIdReq) (*GetUserAuthByUserIdResp, error)
 	GenerateToken(context.Context, *GenerateTokenReq) (*GenerateTokenResp, error)
+	GetUserByMobile(context.Context, *GetUserByMobileReq) (*GetUserByMobileResp, error)
+	SearchUsersByNickname(context.Context, *SearchUsersByNicknameReq) (*SearchUsersByNicknameResp, error)
 	mustEmbedUnimplementedUsercenterServer()
 }
 
@@ -140,11 +166,17 @@ func (UnimplementedUsercenterServer) GetUserInfo(context.Context, *GetUserInfoRe
 func (UnimplementedUsercenterServer) GetUserAuthByAuthKey(context.Context, *GetUserAuthByAuthKeyReq) (*GetUserAuthByAuthKeyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAuthByAuthKey not implemented")
 }
-func (UnimplementedUsercenterServer) GetUserAuthByUserId(context.Context, *GetUserAuthByUserIdReq) (*GetUserAuthyUserIdResp, error) {
+func (UnimplementedUsercenterServer) GetUserAuthByUserId(context.Context, *GetUserAuthByUserIdReq) (*GetUserAuthByUserIdResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAuthByUserId not implemented")
 }
 func (UnimplementedUsercenterServer) GenerateToken(context.Context, *GenerateTokenReq) (*GenerateTokenResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateToken not implemented")
+}
+func (UnimplementedUsercenterServer) GetUserByMobile(context.Context, *GetUserByMobileReq) (*GetUserByMobileResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByMobile not implemented")
+}
+func (UnimplementedUsercenterServer) SearchUsersByNickname(context.Context, *SearchUsersByNicknameReq) (*SearchUsersByNicknameResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchUsersByNickname not implemented")
 }
 func (UnimplementedUsercenterServer) mustEmbedUnimplementedUsercenterServer() {}
 
@@ -267,6 +299,42 @@ func _Usercenter_GenerateToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Usercenter_GetUserByMobile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByMobileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsercenterServer).GetUserByMobile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Usercenter_GetUserByMobile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsercenterServer).GetUserByMobile(ctx, req.(*GetUserByMobileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Usercenter_SearchUsersByNickname_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchUsersByNicknameReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsercenterServer).SearchUsersByNickname(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Usercenter_SearchUsersByNickname_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsercenterServer).SearchUsersByNickname(ctx, req.(*SearchUsersByNicknameReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Usercenter_ServiceDesc is the grpc.ServiceDesc for Usercenter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -298,7 +366,15 @@ var Usercenter_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "generateToken",
 			Handler:    _Usercenter_GenerateToken_Handler,
 		},
+		{
+			MethodName: "getUserByMobile",
+			Handler:    _Usercenter_GetUserByMobile_Handler,
+		},
+		{
+			MethodName: "searchUsersByNickname",
+			Handler:    _Usercenter_SearchUsersByNickname_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "usercenter.proto",
+	Metadata: "pb/usercenter.proto",
 }

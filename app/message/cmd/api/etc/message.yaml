@@ -3,6 +3,31 @@ Host: 0.0.0.0
 Port: 8005
 Mode: dev
 
+# CORS跨域配置
+CorsConf:
+  AllowCredentials: true
+  AllowOrigins:
+    - "*"
+  AllowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  AllowHeaders:
+    - Content-Type
+    - Authorization
+    - X-Requested-With
+    - Accept
+    - Origin
+    - Cache-Control
+    - X-File-Name
+  ExposeHeaders:
+    - Content-Length
+    - Access-Control-Allow-Origin
+    - Access-Control-Allow-Headers
+  MaxAge: 86400
+
 # JWT认证配置
 JwtAuth:
   AccessSecret: ae0536f9-6450-4606-8e13-5a19ed505da0

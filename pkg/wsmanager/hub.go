@@ -29,16 +29,16 @@ type Connection struct {
 type Hub struct {
 	// 注册的连接
 	connections map[int64][]*Connection
-	
+
 	// 注册连接的channel
 	register chan *Connection
-	
+
 	// 注销连接的channel
 	unregister chan *Connection
-	
+
 	// 广播消息的channel
 	broadcast chan *BroadcastMessage
-	
+
 	// 用于并发安全的读写锁
 	mutex sync.RWMutex
 }
@@ -63,9 +63,9 @@ func GetHub() *Hub {
 	once.Do(func() {
 		globalHub = &Hub{
 			connections: make(map[int64][]*Connection),
-			register:   make(chan *Connection),
-			unregister: make(chan *Connection),
-			broadcast:  make(chan *BroadcastMessage),
+			register:    make(chan *Connection),
+			unregister:  make(chan *Connection),
+			broadcast:   make(chan *BroadcastMessage),
 		}
 		go globalHub.run()
 	})
@@ -95,12 +95,12 @@ func (h *Hub) run() {
 func (h *Hub) registerConnection(conn *Connection) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	
+
 	if h.connections[conn.userID] == nil {
 		h.connections[conn.userID] = make([]*Connection, 0)
 	}
 	h.connections[conn.userID] = append(h.connections[conn.userID], conn)
-	
+
 	logx.Infof("User %d connected, total connections: %d", conn.userID, len(h.connections[conn.userID]))
 }
 
@@ -108,7 +108,7 @@ func (h *Hub) registerConnection(conn *Connection) {
 func (h *Hub) unregisterConnection(conn *Connection) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	
+
 	if connections, ok := h.connections[conn.userID]; ok {
 		for i, c := range connections {
 			if c == conn {
@@ -119,43 +119,53 @@ func (h *Hub) unregisterConnection(conn *Connection) {
 				break
 			}
 		}
-		
+
 		// 如果用户没有任何连接了，删除用户记录
 		if len(h.connections[conn.userID]) == 0 {
 			delete(h.connections, conn.userID)
 		}
 	}
-	
+
 	logx.Infof("User %d disconnected", conn.userID)
 }
 
 // broadcastToUser 向指定用户广播消息
 func (h *Hub) broadcastToUser(message *BroadcastMessage) {
+	logx.Infof("开始广播消息给用户 %d", message.UserID)
+
 	h.mutex.RLock()
 	connections := h.connections[message.UserID]
 	h.mutex.RUnlock()
-	
+
 	if connections == nil {
 		logx.Infof("User %d is not online", message.UserID)
 		return
 	}
-	
+
+	logx.Infof("用户 %d 有 %d 个连接", message.UserID, len(connections))
+
 	// 向用户的所有连接发送消息
-	for _, conn := range connections {
+	successCount := 0
+	for i, conn := range connections {
 		select {
 		case conn.send <- message.Data:
+			successCount++
+			logx.Infof("消息已发送到连接 %d", i)
 		default:
 			// 发送失败，关闭连接
+			logx.Errorf("连接 %d 发送失败，关闭连接", i)
 			h.unregister <- conn
 		}
 	}
+
+	logx.Infof("成功发送到 %d/%d 个连接", successCount, len(connections))
 }
 
 // cleanupStaleConnections 清理过期连接
 func (h *Hub) cleanupStaleConnections() {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
-	
+
 	now := time.Now()
 	for userID, connections := range h.connections {
 		activeConnections := make([]*Connection, 0)
@@ -168,7 +178,7 @@ func (h *Hub) cleanupStaleConnections() {
 				logx.Infof("Cleaned up stale connection for user %d", userID)
 			}
 		}
-		
+
 		if len(activeConnections) == 0 {
 			delete(h.connections, userID)
 		} else {
@@ -179,24 +189,29 @@ func (h *Hub) cleanupStaleConnections() {
 
 // SendToUser 向指定用户发送消息
 func (h *Hub) SendToUser(userID int64, messageType string, content interface{}) bool {
+	logx.Infof("尝试向用户 %d 发送消息，类型: %s", userID, messageType)
+
 	data := MessageData{
 		Type:    messageType,
 		Content: content,
 	}
-	
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		logx.Errorf("Marshal message failed: %v", err)
 		return false
 	}
-	
+
+	logx.Infof("消息JSON: %s", string(jsonData))
+
 	message := &BroadcastMessage{
 		UserID: userID,
 		Data:   jsonData,
 	}
-	
+
 	select {
 	case h.broadcast <- message:
+		logx.Infof("消息已发送到广播通道")
 		return true
 	default:
 		logx.Errorf("Broadcast channel is full")
@@ -208,16 +223,20 @@ func (h *Hub) SendToUser(userID int64, messageType string, content interface{}) 
 func (h *Hub) IsUserOnline(userID int64) bool {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	
+
 	connections, exists := h.connections[userID]
-	return exists && len(connections) > 0
+	isOnline := exists && len(connections) > 0
+
+	logx.Infof("检查用户 %d 在线状态: %v (连接数: %d)", userID, isOnline, len(connections))
+
+	return isOnline
 }
 
 // GetOnlineUserCount 获取在线用户数
 func (h *Hub) GetOnlineUserCount() int {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	
+
 	return len(h.connections)
 }
 
@@ -228,7 +247,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, userID int64) {
 		logx.Errorf("WebSocket upgrade failed: %v", err)
 		return
 	}
-	
+
 	connection := &Connection{
 		conn:     conn,
 		userID:   userID,
@@ -236,10 +255,10 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request, userID int64) {
 		hub:      GetHub(),
 		lastSeen: time.Now(),
 	}
-	
+
 	// 注册连接
 	GetHub().register <- connection
-	
+
 	// 启动读写协程
 	go connection.writePump()
 	go connection.readPump()
@@ -252,7 +271,7 @@ func (c *Connection) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
-	
+
 	for {
 		select {
 		case message, ok := <-c.send:
@@ -261,20 +280,20 @@ func (c *Connection) writePump() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			
+
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 			w.Write(message)
-			
+
 			// 批量发送队列中的其他消息
 			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write([]byte{'\n'})
 				w.Write(<-c.send)
 			}
-			
+
 			if err := w.Close(); err != nil {
 				return
 			}
@@ -293,7 +312,7 @@ func (c *Connection) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
-	
+
 	c.conn.SetReadLimit(512)
 	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.conn.SetPongHandler(func(string) error {
@@ -301,7 +320,7 @@ func (c *Connection) readPump() {
 		c.lastSeen = time.Now()
 		return nil
 	})
-	
+
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
@@ -310,9 +329,9 @@ func (c *Connection) readPump() {
 			}
 			break
 		}
-		
+
 		c.lastSeen = time.Now()
-		
+
 		// 处理客户端发送的消息（如心跳、状态更新等）
 		var msgData MessageData
 		if err := json.Unmarshal(message, &msgData); err == nil {

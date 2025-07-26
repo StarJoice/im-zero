@@ -41,10 +41,10 @@ func (l *GetFriendListLogic) GetFriendList(in *friend.GetFriendListReq) (*friend
 	}
 
 	// 查询好友列表
-	friends, err := l.svcCtx.ImFriendModel.FindByUserId(l.ctx, in.UserId)
+	friends, err := l.svcCtx.ImFriendModel.FindFriendsByUserId(l.ctx, in.UserId)
 	if err != nil {
-		l.Logger.Errorw("Find friends failed", 
-			logx.Field("userId", in.UserId), 
+		l.Logger.Errorw("Find friends failed",
+			logx.Field("userId", in.UserId),
 			logx.Field("error", err.Error()))
 		return nil, errors.Wrapf(err, "find friends failed")
 	}
@@ -52,17 +52,12 @@ func (l *GetFriendListLogic) GetFriendList(in *friend.GetFriendListReq) (*friend
 	// 转换结果
 	var friendList []*friend.FriendInfo
 	for _, friendModel := range friends {
-		// 过滤分组（如果指定了groupId）
-		if in.GroupId > 0 && friendModel.GroupId.Int64 != in.GroupId {
-			continue
-		}
-
 		// 获取好友用户信息
 		userInfo, err := l.svcCtx.UsercenterRpc.GetUserInfo(l.ctx, &usercenter.GetUserInfoReq{
 			Id: friendModel.FriendId,
 		})
 		if err != nil {
-			l.Logger.Warnw("Get friend user info failed",
+			l.Logger.Errorw("Get friend user info failed",
 				logx.Field("friendId", friendModel.FriendId),
 				logx.Field("error", err.Error()),
 			)
@@ -70,20 +65,17 @@ func (l *GetFriendListLogic) GetFriendList(in *friend.GetFriendListReq) (*friend
 		}
 
 		friendInfo := &friend.FriendInfo{
-			Id:         friendModel.Id,
-			UserId:     friendModel.UserId,
-			FriendId:   friendModel.FriendId,
-			Remark:     friendModel.Remark.String,
-			GroupId:    friendModel.GroupId.Int64,
-			Status:     int32(friendModel.Status),
-			CreateTime: friendModel.CreateTime.Unix(),
 			UserInfo: &friend.UserInfo{
 				Id:       userInfo.User.Id,
 				Mobile:   userInfo.User.Mobile,
 				Nickname: userInfo.User.Nickname,
 				Avatar:   userInfo.User.Avatar,
 				Sign:     userInfo.User.Sign,
+				Status:   0, // 在线状态需要从其他服务获取，暂时设为0
 			},
+			Remark:     friendModel.Remark.String,
+			GroupId:    0, // 当前数据模型中没有GroupId字段，设为0
+			CreateTime: friendModel.CreateTime.Unix(),
 		}
 		friendList = append(friendList, friendInfo)
 	}

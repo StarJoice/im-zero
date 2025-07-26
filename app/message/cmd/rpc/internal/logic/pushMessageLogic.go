@@ -1,11 +1,14 @@
 package logic
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"net/http"
+	"time"
 
 	"im-zero/app/message/cmd/rpc/internal/svc"
 	"im-zero/app/message/cmd/rpc/message"
-	"im-zero/pkg/wsmanager"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -24,6 +27,29 @@ func NewPushMessageLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PushM
 	}
 }
 
+// 内部推送请求结构
+type InternalPushReq struct {
+	UserId  int64   `json:"userId"`
+	Message Message `json:"message"`
+}
+
+type Message struct {
+	Id             int64  `json:"id"`
+	FromUserId     int64  `json:"fromUserId"`
+	ToUserId       int64  `json:"toUserId"`
+	ConversationId string `json:"conversationId"`
+	MessageType    int32  `json:"messageType"`
+	Content        string `json:"content"`
+	Extra          string `json:"extra"`
+	Status         int32  `json:"status"`
+	CreateTime     int64  `json:"createTime"`
+	UpdateTime     int64  `json:"updateTime"`
+}
+
+type InternalPushResp struct {
+	Success bool `json:"success"`
+}
+
 // 推送消息给用户
 func (l *PushMessageLogic) PushMessage(in *message.PushMessageReq) (*message.PushMessageResp, error) {
 	// 参数验证
@@ -37,46 +63,66 @@ func (l *PushMessageLogic) PushMessage(in *message.PushMessageReq) (*message.Pus
 		return &message.PushMessageResp{Success: false}, nil
 	}
 
-	// 获取WebSocket连接管理器
-	hub := wsmanager.GetHub()
-	
-	// 检查用户是否在线
-	isOnline := hub.IsUserOnline(in.UserId)
-	
-	if isOnline {
-		// 用户在线，通过WebSocket推送消息
-		success := hub.SendToUser(in.UserId, "new_message", map[string]interface{}{
-			"id":             in.Message.Id,
-			"from_user_id":   in.Message.FromUserId,
-			"to_user_id":     in.Message.ToUserId,
-			"conversation_id": in.Message.ConversationId,
-			"message_type":   in.Message.MessageType,
-			"content":        in.Message.Content,
-			"extra":          in.Message.Extra,
-			"status":         in.Message.Status,
-			"create_time":    in.Message.CreateTime,
-			"update_time":    in.Message.UpdateTime,
-		})
-		
-		if success {
-			// 推送成功，更新消息状态为已送达
-			err := l.svcCtx.ImMessageModel.UpdateMessageStatus(l.ctx, in.Message.Id, 2) // 2-已送达
-			if err != nil {
-				l.Logger.Errorf("Update message status to delivered failed: msgId=%d, err=%v", in.Message.Id, err)
-			}
-			
-			l.Logger.Infof("Message pushed successfully to online user %d, msgId=%d", in.UserId, in.Message.Id)
-			return &message.PushMessageResp{Success: true}, nil
-		} else {
-			l.Logger.Errorf("Failed to push message to online user %d via WebSocket", in.UserId)
-		}
-	} else {
-		l.Logger.Infof("User %d is offline, message will be delivered when user comes online", in.UserId)
-		// 用户离线，消息保持在数据库中，状态为已发送(1)
-		// 当用户上线时，可以通过获取聊天记录接口获取未读消息
+	// 通过HTTP调用API服务的内部推送接口
+	success := l.callInternalPushAPI(in.UserId, in.Message)
+
+	l.Logger.Infof("消息推送请求: 用户=%d, 消息ID=%d, 结果=%v", in.UserId, in.Message.Id, success)
+
+	return &message.PushMessageResp{Success: success}, nil
+}
+
+// 调用API服务的内部推送接口
+func (l *PushMessageLogic) callInternalPushAPI(userId int64, msg *message.MessageInfo) bool {
+	// API服务的内部推送URL (这里假设API服务在8005端口)
+	url := "http://localhost:8005/message/v1/internal/push"
+
+	// 构造请求数据
+	reqData := InternalPushReq{
+		UserId: userId,
+		Message: Message{
+			Id:             msg.Id,
+			FromUserId:     msg.FromUserId,
+			ToUserId:       msg.ToUserId,
+			ConversationId: msg.ConversationId,
+			MessageType:    msg.MessageType,
+			Content:        msg.Content,
+			Extra:          msg.Extra,
+			Status:         msg.Status,
+			CreateTime:     msg.CreateTime,
+			UpdateTime:     msg.UpdateTime,
+		},
 	}
 
-	// 无论是否在线都返回成功，因为消息已经保存到数据库
-	// 离线消息会在用户上线后通过获取聊天记录等方式获取
-	return &message.PushMessageResp{Success: true}, nil
+	// 序列化为JSON
+	jsonData, err := json.Marshal(reqData)
+	if err != nil {
+		l.Logger.Errorf("Marshal push request failed: %v", err)
+		return false
+	}
+
+	// 发送HTTP请求
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		l.Logger.Errorf("Call internal push API failed: %v", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		l.Logger.Errorf("Internal push API returned non-200 status: %d", resp.StatusCode)
+		return false
+	}
+
+	// 解析响应
+	var pushResp InternalPushResp
+	if err := json.NewDecoder(resp.Body).Decode(&pushResp); err != nil {
+		l.Logger.Errorf("Decode push response failed: %v", err)
+		return false
+	}
+
+	return pushResp.Success
 }

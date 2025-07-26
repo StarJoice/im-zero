@@ -133,7 +133,7 @@ func (l *HandleFriendRequestLogic) HandleFriendRequest(in *friend.HandleFriendRe
 				return errors.Wrapf(err, "check friendship failed")
 			}
 			if isFriend {
-				l.Logger.Warnw("Users are already friends",
+				l.Logger.Errorw("Users are already friends",
 					logx.Field("fromUserId", request.FromUserId),
 					logx.Field("toUserId", request.ToUserId),
 				)
@@ -180,7 +180,7 @@ func (l *HandleFriendRequestLogic) HandleFriendRequest(in *friend.HandleFriendRe
 				UserId:   request.ToUserId,
 				FriendId: request.FromUserId,
 				Remark:   sql.NullString{String: in.Remark, Valid: in.Remark != ""}, // 接收者可以设置备注
-				Status:   1,                                                          // 正常状态
+				Status:   1,                                                         // 正常状态
 			}
 			toFriend.CreateTime = now
 			toFriend.UpdateTime = now
