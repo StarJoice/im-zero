@@ -1,5 +1,6 @@
 # 忽略 MySQL 数据目录（包含套接字、日志、数据库文件等）
 data/
+test/
 
 # 忽略 IDE 自动生成的配置文件（如 .idea/，可选但推荐）
 .idea/
@@ -12,3 +13,4 @@ data/
 *.sock
 *.log
 *.tmp
+*.exe
